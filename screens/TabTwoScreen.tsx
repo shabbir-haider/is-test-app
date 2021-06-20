@@ -1,22 +1,61 @@
 import * as React from 'react';
-import { StyleSheet } from 'react-native';
+import { StyleSheet , Image, ActivityIndicator} from 'react-native';
 
 import EditScreenInfo from '../components/EditScreenInfo';
-import { Text, View } from '../components/Themed';
+import { Text, View, } from '../components/Themed';
 
-export default function TabTwoScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="/screens/TabTwoScreen.tsx" />
-    </View>
-  );
+import Axios from 'axios'; 
+
+export default class TabTwoScreen extends React.Component {
+
+  state = {
+    weather : null,
+    loading : true
+  }
+
+  componentDidMount () {
+    // get weather data
+    this.setState({
+      loading : true
+    })
+    Axios.get('https://www.metaweather.com/api/location/1940345/').then (res => {
+      this.setState({
+        weather : res.data,
+        loading : false
+      }).catch(e => {
+        this.setState({
+          loading : false
+        })
+        Alert('Unable to fetch data,' ,e);
+      })
+    })
+  }
+
+
+  render () {
+    const { weather , loading } = this.state;
+    return (
+      <View style={styles.container}>
+        {loading && <ActivityIndicator />}
+        {weather && <Image 
+          source={{ uri: `https://www.metaweather.com/static/img/weather/png/${weather.consolidated_weather[0].weather_state_abbr}.png` }} 
+          style={{ width: 305, height: 350 }} 
+          resizeMode={"contain"}
+          />
+        }
+        {weather && <Text style={styles.title}>{weather.consolidated_weather[0].the_temp}</Text>}
+        {weather && <Text> {weather.consolidated_weather[0].weather_state_name}</Text>}
+        
+      </View>
+    );
+  }
+  
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // justifyContent : 'space-evenly'
     alignItems: 'center',
     justifyContent: 'center',
   },
